@@ -51,12 +51,15 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
 
     media_type = detect_media_type(dvd_device)
     if media_type == "Unknown":
-        messagebox.showerror("Error", "Unsupported or unknown media type detected.")
-        return
+            messagebox.showerror("Error", "Unsupported or unknown media type detected.")
+            return
 
-    command = prepare_command(media_type, dvd_device, iso_path, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var)
+    command = prepare_command(media_type, dvd_device, iso_path, 
+                                n_option_var.get(), r3_option_var.get(), 
+                                b_option_var.get(), d_option_var.get(), 
+                                c_option_var.get())
     if command is None:
-        return
+            return
 
     if not check_free_space(iso_path, 8 * 1024 * 1024 * 1024):
         messagebox.showerror("Error", "Insufficient free space in the output directory.")

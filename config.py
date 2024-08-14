@@ -18,14 +18,14 @@ FONT_FAMILY = "Courier"
 FONT_SIZE = 10
 
 # Error messages
-SUDO_ERROR = "Dieses Script muss mit Root-Rechten ausgeführt werden. Bitte starten Sie es mit 'sudo'."
-NO_DVD_DEVICE = "Kein DVD-Laufwerk erkannt. Bitte überprüfen Sie Ihre Hardware."
-DDRESCUE_NOT_INSTALLED = "ddrescue ist nicht auf diesem System installiert. Bitte installieren Sie es und versuchen Sie es erneut."
-DVDISASTER_NOT_INSTALLED = "dvdisaster ist nicht installiert. Einige Wiederherstellungsoptionen sind deaktiviert."
+SUDO_ERROR = "This script must be run with root privileges. Please start it with 'sudo'."
+NO_DVD_DEVICE = "No DVD drive detected. Please check your hardware."
+DDRESCUE_NOT_INSTALLED = "ddrescue is not installed on this system. Please install it and try again."
+DVDISASTER_NOT_INSTALLED = "dvdisaster is not installed. Some recovery options are disabled."
 
 # Success messages
-ISO_CREATION_SUCCESS = "ISO-Image erfolgreich erstellt unter {}"
-EJECT_PROMPT = "ISO erfolgreich erstellt. Möchten Sie die DVD auswerfen?"
+ISO_CREATION_SUCCESS = "ISO image successfully created at {}"
+EJECT_PROMPT = "ISO successfully created. Would you like to eject the DVD?"
 
 # Command templates
 DDRESCUE_COMMAND_TEMPLATE = "sudo /usr/bin/ddrescue {options} {device} {iso_path} {mapfile}"

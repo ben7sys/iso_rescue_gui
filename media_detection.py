@@ -1,6 +1,5 @@
 import subprocess
 import shutil
-from config import n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var
 
 def detect_media_type(device):
     try:
@@ -27,9 +26,9 @@ def detect_media_type(device):
     except subprocess.CalledProcessError:
         return "Unknown"
     
-def prepare_command(media_type, dvd_device, output_path, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var):
+def prepare_command(media_type, dvd_device, output_path, n_option, r3_option, b_option, d_option, c_option):
     if media_type == "Data CD/DVD":
-        return prepare_data_cd_dvd_command(dvd_device, output_path)
+        return prepare_data_cd_dvd_command(dvd_device, output_path, n_option, r3_option, b_option, d_option, c_option)
     elif media_type == "Audio CD":
         return prepare_audio_cd_command(dvd_device, output_path)
     elif media_type == "Video/Music DVD":
@@ -37,18 +36,17 @@ def prepare_command(media_type, dvd_device, output_path, n_option_var, r3_option
     else:
         return None
 
-def prepare_data_cd_dvd_command(dvd_device, output_path):
-    method = "ddrescue"
+def prepare_data_cd_dvd_command(dvd_device, output_path, n_option, r3_option, b_option, d_option, c_option):
     ddrescue_options = ['--force']
-    if n_option_var.get():
+    if n_option:
         ddrescue_options.append("-n")
-    if r3_option_var.get():
+    if r3_option:
         ddrescue_options.append("-r3")
-    if b_option_var.get():
+    if b_option:
         ddrescue_options.append("-b 2048")
-    if d_option_var.get():
+    if d_option:
         ddrescue_options.append("-d")
-    if c_option_var.get():
+    if c_option:
         ddrescue_options.append("-C")
     
     mapfile = f"{output_path}.map"
