@@ -1,10 +1,9 @@
 import tkinter as tk
-from tkinter import ttk
 
 def disable_gui_elements(elements):
     """Disable all GUI elements except the Stop button."""
     for element in elements:
-        if isinstance(element, (tk.Button, tk.Entry, tk.Text, ttk.Combobox)):
+        if isinstance(element, (tk.Button, tk.Entry, tk.Text, tk.ttk.Combobox)):
             if isinstance(element, tk.Button) and element['text'] == "Stop":
                 element.config(state=tk.NORMAL, bg='red')
             else:
@@ -22,7 +21,7 @@ def reset_gui_state(elements):
                 element.config(state=tk.NORMAL)
         elif isinstance(element, tk.Entry):
             element.config(state=tk.NORMAL)
-        elif isinstance(element, ttk.Combobox):
+        elif isinstance(element, tk.ttk.Combobox):
             element.config(state='readonly')
         else:
             element.config(state=tk.NORMAL)
@@ -41,7 +40,6 @@ def apply_preset(preset, method_var, n_option_var, r3_option_var, b_option_var, 
         b_option_var.set(presets[preset]["b"])
         d_option_var.set(presets[preset]["d"])
 
-# Update the GUI based on the selected media type
 def update_gui_for_media_type(media_type_var, method_var, elements):
     """Update the GUI based on the selected media type."""
     media_type = media_type_var.get()
@@ -57,13 +55,28 @@ def update_gui_for_media_type(media_type_var, method_var, elements):
 def enable_ddrescue_options(elements):
     """Enable ddrescue-specific options in the GUI."""
     for element in elements:
-        if isinstance(element, (tk.Checkbutton, ttk.Combobox)):
+        if isinstance(element, (tk.Checkbutton, tk.ttk.Combobox)):
             element.config(state='normal')
 
 def disable_ddrescue_options(elements):
     """Disable ddrescue-specific options in the GUI."""
     for element in elements:
-        if isinstance(element, (tk.Checkbutton, ttk.Combobox)):
+        if isinstance(element, (tk.Checkbutton, tk.ttk.Combobox)):
             element.config(state='disabled')
 
-# Other helper functions related to GUI management can be added here.
+def update_progress(progress_bar, value):
+    """Update the progress bar with the given value."""
+    progress_bar['value'] = value
+    progress_bar.update_idletasks()
+
+def update_log(log_text, message):
+    """Update the log text widget with the given message."""
+    log_text.insert(tk.END, message + '\n')
+    log_text.see(tk.END)
+    
+    # Limit the number of lines to 1000
+    lines = int(log_text.index('end-1c').split('.')[0])
+    if lines > 1000:
+        log_text.delete('1.0', f'{lines-1000}.0')
+    
+    log_text.update_idletasks()
