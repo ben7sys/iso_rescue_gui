@@ -66,13 +66,14 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
 
     # Disable GUI elements and activate Stop button
     disable_gui_elements(app.winfo_children())
+    stop_button.config(state=tk.NORMAL, bg='red')
     app.update_idletasks()  # Ensure the GUI updates after changes
 
     log_text.delete(1.0, tk.END)  # Clear log before starting a new operation
     log_text.insert(tk.END, f"Executing command: {command}\n")
 
     # Start the command execution in a new thread
-    threading.Thread(target=run_command, args=(command, log_text, app, iso_path, dvd_device)).start()
+    threading.Thread(target=run_command, args=(command, log_text, app, iso_path, dvd_device, stop_button)).start()
 
 
 def check_media_present(device):
@@ -83,8 +84,7 @@ def check_media_present(device):
     except subprocess.CalledProcessError:
         return False
 
-def run_command(command, log_text, app, iso_path, dvd_device):
-    """Run the ISO creation command in a separate thread."""
+def run_command(command, log_text, app, iso_path, dvd_device, stop_button):
     global process
     try:
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, preexec_fn=os.setsid)
@@ -99,6 +99,7 @@ def run_command(command, log_text, app, iso_path, dvd_device):
         if stop_event.is_set():
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
             log_text.insert(tk.END, "Operation stopped.\n")
+            stop_button.config(state=tk.DISABLED)  # Disable the Stop button when the process is stopped
         else:
             stderr_output = process.stderr.read().strip()
             if stderr_output:
@@ -122,6 +123,8 @@ def run_command(command, log_text, app, iso_path, dvd_device):
         messagebox.showerror("Error", "An unexpected error occurred. See the log for details.")
     finally:
         app.after(0, lambda: reset_gui_state(app.winfo_children()))
+        stop_button.config(state=tk.DISABLED)  # Ensure the Stop button is disabled after process completion
+
 
 def check_free_space(file_path, required_space):
     """Check if there's enough free space in the directory where the file will be created."""

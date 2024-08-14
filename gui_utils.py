@@ -12,7 +12,6 @@ def disable_gui_elements(elements):
     # Force update GUI
     elements[0].update_idletasks()
 
-
 def reset_gui_state(elements):
     """Reset the GUI state after process completion or termination."""
     for element in elements:
