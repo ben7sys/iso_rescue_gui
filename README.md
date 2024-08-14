@@ -2,7 +2,7 @@
 
 ISO Rescue GUI is a user-friendly graphical interface for creating ISO images from CDs and DVDs, with a focus on rescuing data from damaged or difficult-to-read discs.
 
-![ISO Rescue GUI Screenshot]()
+![ISO Rescue GUI Screenshot](gui1.png)
 
 ## Features
 
