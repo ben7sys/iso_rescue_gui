@@ -9,6 +9,9 @@ def disable_gui_elements(elements):
                 element.config(state=tk.NORMAL, bg='red')
             else:
                 element.config(state=tk.DISABLED)
+    # Force update GUI
+    elements[0].update_idletasks()
+
 
 def reset_gui_state(elements):
     """Reset the GUI state after process completion or termination."""

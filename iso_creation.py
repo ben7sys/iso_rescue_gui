@@ -36,46 +36,44 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
         messagebox.showerror("Error", "The target directory is not writable. Please choose a different directory.")
         return
 
-    # Check for overwrite confirmation
     if os.path.exists(iso_path):
         if not messagebox.askyesno("Confirm Overwrite", f"The file {iso_path} already exists. Overwrite?"):
             return
 
-    # Check DVD device
     dvd_device = dvd_device_var.get().split()[0]  # Extract device name
     if dvd_device == "No DVD device found":
         messagebox.showerror("Error", NO_DVD_DEVICE)
         return
 
-    # Check if media is present in the drive
     if not check_media_present(dvd_device):
         messagebox.showerror("Error", "No media detected in the drive. Please insert a disc and try again.")
         return
 
-    # Detect media type
     media_type = detect_media_type(dvd_device)
     if media_type == "Unknown":
         messagebox.showerror("Error", "Unsupported or unknown media type detected.")
         return
 
-    # Prepare command based on media type
     command = prepare_command(media_type, dvd_device, iso_path)
     if command is None:
         return
 
-    # Check for sufficient free space (assuming 8GB as max size for DVD)
     if not check_free_space(iso_path, 8 * 1024 * 1024 * 1024):
         messagebox.showerror("Error", "Insufficient free space in the output directory.")
         return
 
     handle_mapfile(iso_path)  # Handle mapfile before starting the process
 
+    # Disable GUI elements and activate Stop button
     disable_gui_elements(app.winfo_children())
+    app.update_idletasks()  # Ensure the GUI updates after changes
+
     log_text.delete(1.0, tk.END)  # Clear log before starting a new operation
     log_text.insert(tk.END, f"Executing command: {command}\n")
 
     # Start the command execution in a new thread
     threading.Thread(target=run_command, args=(command, log_text, app, iso_path, dvd_device)).start()
+
 
 def check_media_present(device):
     try:
