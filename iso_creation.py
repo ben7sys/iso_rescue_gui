@@ -125,10 +125,23 @@ def run_command(command, log_text, app, iso_path, dvd_device):
     finally:
         app.after(0, lambda: reset_gui_state(app.winfo_children()))
 
-def check_free_space(directory, required_space):
-    """Check if there's enough free space in the directory."""
+def check_free_space(file_path, required_space):
+    """Check if there's enough free space in the directory where the file will be created."""
+    directory = os.path.dirname(file_path)
+    
+    if not directory:  # This handles cases where the file_path is just a filename without a directory
+        directory = '.'
+    
+    if not os.path.exists(directory):
+        try:
+            os.makedirs(directory)
+        except Exception as e:
+            print(f"Error creating directory {directory}: {e}")
+            return False
+    
     total, used, free = shutil.disk_usage(directory)
     return free > required_space
+
 
 def stop_process():
     """Stop the current ISO creation process."""
