@@ -34,7 +34,6 @@ def reset_gui_state(elements):
 
 def apply_preset(preset, method_var, n_option_var, r3_option_var, b_option_var, d_option_var):
     """Apply preset configurations for different DVD conditions.
-    
     This function applies predefined settings to the GUI elements based on the selected preset.
     The presets adjust the method and various options to optimize the process for intact, damaged, or irrecoverable DVDs."""
     if preset == "intact":
