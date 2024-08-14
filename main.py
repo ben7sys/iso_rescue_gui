@@ -18,6 +18,13 @@ original_user = check_sudo()
 app = tk.Tk()
 app.title("ISO Rescue GUI")
 
+# Define the tk.BooleanVar() variables after the root window is created
+n_option_var = tk.BooleanVar()
+r3_option_var = tk.BooleanVar()
+b_option_var = tk.BooleanVar(value=True)
+d_option_var = tk.BooleanVar(value=True)
+c_option_var = tk.BooleanVar(value=False)
+
 frame = tk.Frame(app)
 frame.pack(pady=10, padx=10)
 
