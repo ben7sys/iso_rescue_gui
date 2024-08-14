@@ -1,5 +1,4 @@
 import os
-import tkinter as tk
 
 # Global variables
 process = None
@@ -31,10 +30,3 @@ EJECT_PROMPT = "ISO erfolgreich erstellt. Möchten Sie die DVD auswerfen?"
 # Command templates
 DDRESCUE_COMMAND_TEMPLATE = "sudo /usr/bin/ddrescue {options} {device} {iso_path} {mapfile}"
 DD_COMMAND_TEMPLATE = "sudo dd if={device} of={iso_path} bs={bs_size} status=progress"
-
-# GUI Options
-n_option_var = tk.BooleanVar()
-r3_option_var = tk.BooleanVar()
-b_option_var = tk.BooleanVar(value=True)
-d_option_var = tk.BooleanVar(value=True)
-c_option_var = tk.BooleanVar(value=False)
