@@ -18,6 +18,7 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
     global process, stop_event
     stop_event = threading.Event()
 
+    # Check output path
     iso_path = output_path_var.get()
     if not iso_path:
         messagebox.showerror("Error", "Please specify an output path for the ISO file.")
@@ -27,21 +28,24 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
         messagebox.showerror("Error", "The target directory is not writable. Please choose a different directory.")
         return
 
+    # Check for overwrite confirmation
     if os.path.exists(iso_path):
         if not messagebox.askyesno("Confirm Overwrite", f"The file {iso_path} already exists. Overwrite?"):
             return
 
+    # Check DVD device
     dvd_device = dvd_device_var.get().split()[0]  # Extract device name
     if dvd_device == "No DVD device found":
         messagebox.showerror("Error", NO_DVD_DEVICE)
         return
 
+    # Check method and tool availability
     method = method_var.get()
     if method == "ddrescue" and not check_tool_installed("ddrescue"):
         messagebox.showerror("Error", DDRESCUE_NOT_INSTALLED)
         return
 
-    # Build the command based on user selections
+    # Build and execute command based on method and user options
     if method == "ddrescue":
         ddrescue_options = DDRESCUE_DEFAULT_OPTIONS.copy()
         if n_option_var.get():
@@ -67,11 +71,14 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
             bs_size=DD_BS_SIZE
         )
 
+    # Disable GUI elements and log command
     disable_gui_elements(app.winfo_children())
     log_text.delete(1.0, tk.END)  # Clear log before starting a new operation
     log_text.insert(tk.END, f"Executing command: {command}\n")
 
+    # Start the command execution in a new thread
     threading.Thread(target=run_command, args=(command, log_text, app, iso_path, dvd_device)).start()
+
 
 def run_command(command, log_text, app, iso_path, dvd_device):
     """Run the ISO creation command in a separate thread."""
@@ -112,6 +119,7 @@ def run_command(command, log_text, app, iso_path, dvd_device):
         messagebox.showerror("Error", "An unexpected error occurred. See the log for details.")
     finally:
         app.after(0, lambda: reset_gui_state(app.winfo_children()))
+
 
 def stop_process():
     """Stop the current ISO creation process."""
