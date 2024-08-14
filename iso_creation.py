@@ -8,7 +8,7 @@ import signal
 import tkinter as tk
 from config import process, stop_event, DDRESCUE_DEFAULT_OPTIONS, DD_BS_SIZE, DDRESCUE_COMMAND_TEMPLATE, DD_COMMAND_TEMPLATE, NO_DVD_DEVICE, DDRESCUE_NOT_INSTALLED, ISO_CREATION_SUCCESS, EJECT_PROMPT
 from core_functions import check_tool_installed, check_writable_directory
-from gui_utils import disable_gui_elements, reset_gui_state
+from gui_utils import disable_gui_elements, reset_gui_state, update_progress, update_log
 from iso_utils import try_mount_iso, attempt_iso_recovery
 from media_detection import detect_media_type, prepare_command
 
@@ -22,7 +22,7 @@ def handle_mapfile(iso_path):
         except OSError as e:
             print(f"Error removing mapfile: {e}")
 
-def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var, log_text, app, stop_button):
+def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var, log_text, app, stop_button, progress_bar):
     global process, stop_event
     stop_event = threading.Event()
 
@@ -72,11 +72,11 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
     stop_button.config(state=tk.NORMAL, bg='red')
     app.update_idletasks()  # Ensure the GUI updates after changes
 
-    log_text.delete(1.0, tk.END)  # Clear log before starting a new operation
-    log_text.insert(tk.END, f"Executing command: {command}\n")
+    update_log(log_text, "Starting ISO creation process...")
+    update_log(log_text, f"Executing command: {command}")
 
     # Start the command execution in a new thread
-    threading.Thread(target=run_command, args=(command, log_text, app, iso_path, dvd_device, stop_button)).start()
+    threading.Thread(target=run_command, args=(command, log_text, app, iso_path, dvd_device, stop_button, progress_bar)).start()
 
 def check_media_present(device):
     try:
@@ -86,7 +86,7 @@ def check_media_present(device):
     except subprocess.CalledProcessError:
         return False
 
-def run_command(command, log_text, app, iso_path, dvd_device, stop_button):
+def run_command(command, log_text, app, iso_path, dvd_device, stop_button, progress_bar):
     global process
     try:
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, preexec_fn=os.setsid)
@@ -94,18 +94,24 @@ def run_command(command, log_text, app, iso_path, dvd_device, stop_button):
         while process.poll() is None and not stop_event.is_set():
             output = process.stdout.readline()
             if output:
-                log_text.insert(tk.END, output)
-                log_text.see(tk.END)
-                app.update_idletasks()
+                # Extract progress from output (if available)
+                if "%" in output:
+                    try:
+                        progress = float(output.split("%")[0].split()[-1])
+                        update_progress(progress_bar, progress)
+                    except ValueError:
+                        pass
+                
+                update_log(log_text, output.strip())
 
         if stop_event.is_set():
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-            log_text.insert(tk.END, "Operation stopped.\n")
-            stop_button.config(state=tk.DISABLED)  # Disable the Stop button when the process is stopped
+            update_log(log_text, "Operation stopped.")
+            stop_button.config(state=tk.DISABLED)
         else:
             stderr_output = process.stderr.read().strip()
             if stderr_output:
-                log_text.insert(tk.END, f"Error output: {stderr_output}\n")
+                update_log(log_text, f"Error output: {stderr_output}")
 
             if process.returncode == 0:
                 if os.path.getsize(iso_path) > 0:
@@ -118,14 +124,15 @@ def run_command(command, log_text, app, iso_path, dvd_device, stop_button):
                 raise subprocess.CalledProcessError(process.returncode, command)
 
     except subprocess.CalledProcessError as e:
-        log_text.insert(tk.END, f"Command failed with error: {e}\n")
+        update_log(log_text, f"Command failed with error: {e}")
         messagebox.showerror("Error", "ISO creation failed. See the log for details.")
     except Exception as e:
-        log_text.insert(tk.END, f"Unexpected error: {e}\n")
+        update_log(log_text, f"Unexpected error: {e}")
         messagebox.showerror("Error", "An unexpected error occurred. See the log for details.")
     finally:
+        update_progress(progress_bar, 0)  # Reset progress bar
         app.after(0, lambda: reset_gui_state(app.winfo_children()))
-        stop_button.config(state=tk.DISABLED)  # Ensure the Stop button is disabled after process completion
+        stop_button.config(state=tk.DISABLED)
 
 def check_free_space(file_path, required_space):
     """Check if there's enough free space in the directory where the file will be created."""
@@ -159,9 +166,9 @@ def attempt_iso_recovery(iso_path, log_text):
         recovery_command = f"iso-read -i {iso_path} -o {iso_path.replace('.iso', '-recovered.iso')}"
     
     try:
-        log_text.insert(tk.END, f"Attempting ISO recovery with command: {recovery_command}\n")
+        update_log(log_text, f"Attempting ISO recovery with command: {recovery_command}")
         subprocess.run(recovery_command, shell=True, check=True)
         messagebox.showinfo("Recovery", "ISO recovery completed. Check the recovered ISO.")
     except subprocess.CalledProcessError as e:
-        log_text.insert(tk.END, f"ISO recovery failed with error: {e}\n")
+        update_log(log_text, f"ISO recovery failed with error: {e}")
         messagebox.showerror("Error", "ISO recovery failed. See the log for details.")
