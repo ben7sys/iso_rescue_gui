@@ -69,9 +69,10 @@ def update_progress(progress_bar, value):
     progress_bar['value'] = value
     progress_bar.update_idletasks()
 
-def update_log(log_text, message):
-    """Update the log text widget with the given message."""
-    log_text.insert(tk.END, message + '\n')
+def update_log(log_text, message, level="INFO"):
+    """Update the log text widget with the given message and log level."""
+    log_message = f"[{level}] {message}"
+    log_text.insert(tk.END, log_message + '\n')
     log_text.see(tk.END)
     
     # Limit the number of lines to 1000
