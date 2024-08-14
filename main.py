@@ -60,6 +60,10 @@ d_option_var = tk.BooleanVar(value=True)
 d_option_checkbox = tk.Checkbutton(options_frame, text="Use Direct Access Mode (-d)", variable=d_option_var)
 d_option_checkbox.pack(anchor=tk.W)
 
+c_option_var = tk.BooleanVar(value=False)
+c_option_checkbox = tk.Checkbutton(options_frame, text="Reading from partial copy (-C)", variable=c_option_var)
+c_option_checkbox.pack(anchor=tk.W)
+
 # Add presets
 presets_frame = tk.LabelFrame(frame, text="Presets")
 presets_frame.pack(anchor=tk.W, fill="x", pady=5)
