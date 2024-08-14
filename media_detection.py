@@ -1,5 +1,6 @@
 import subprocess
 import shutil
+from config import n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var
 
 def detect_media_type(device):
     try:
@@ -26,7 +27,7 @@ def detect_media_type(device):
     except subprocess.CalledProcessError:
         return "Unknown"
     
-def prepare_command(media_type, dvd_device, output_path):
+def prepare_command(media_type, dvd_device, output_path, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var):
     if media_type == "Data CD/DVD":
         return prepare_data_cd_dvd_command(dvd_device, output_path)
     elif media_type == "Audio CD":
@@ -37,25 +38,28 @@ def prepare_command(media_type, dvd_device, output_path):
         return None
 
 def prepare_data_cd_dvd_command(dvd_device, output_path):
-    method = method_var.get()
-    if method == "ddrescue":
-        if not check_tool_installed("ddrescue"):
-            messagebox.showerror("Error", "ddrescue is not installed. Please install it and try again.")
-            return None
-        
-        ddrescue_options = ['--force']
-        if n_option_var.get():
-            ddrescue_options.append("-n")
-        if r3_option_var.get():
-            ddrescue_options.append("-r3")
-        if b_option_var.get():
-            ddrescue_options.append("-b 2048")
-        if d_option_var.get():
-            ddrescue_options.append("-d")
-        if c_option_var.get():
-            ddrescue_options.append("-C")
-        
-        mapfile = f"{output_path}.map"
-        return f"sudo ddrescue {' '.join(ddrescue_options)} {dvd_device} {output_path} {mapfile}"
-    else:
-        return f"sudo dd if={dvd_device} of={output_path} bs=1M status=progress"
+    method = "ddrescue"
+    ddrescue_options = ['--force']
+    if n_option_var.get():
+        ddrescue_options.append("-n")
+    if r3_option_var.get():
+        ddrescue_options.append("-r3")
+    if b_option_var.get():
+        ddrescue_options.append("-b 2048")
+    if d_option_var.get():
+        ddrescue_options.append("-d")
+    if c_option_var.get():
+        ddrescue_options.append("-C")
+    
+    mapfile = f"{output_path}.map"
+    return f"sudo ddrescue {' '.join(ddrescue_options)} {dvd_device} {output_path} {mapfile}"
+
+def prepare_audio_cd_command(dvd_device, output_path):
+    if shutil.which("cdparanoia") is None:
+        raise RuntimeError("cdparanoia is not installed")
+    return f"cdparanoia -B -d {dvd_device} -D 0 -Z {output_path}/track"
+
+def prepare_video_music_dvd_command(dvd_device, output_path):
+    if shutil.which("dvdbackup") is None:
+        raise RuntimeError("dvdbackup is not installed")
+    return f"dvdbackup -i {dvd_device} -o {output_path} -M"
