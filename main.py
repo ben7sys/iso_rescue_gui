@@ -6,7 +6,7 @@ import threading
 from config import *
 from core_functions import check_sudo, check_tool_installed
 from device_detection import detect_dvd_devices
-from gui_utils import disable_gui_elements, reset_gui_state, apply_preset, update_gui_for_media_type
+from gui_utils import disable_gui_elements, reset_gui_state, apply_preset, update_gui_for_media_type, update_progress, update_log
 from iso_creation import create_iso, stop_process
 from media_detection import detect_media_type
 from iso_utils import try_mount_iso, attempt_iso_recovery
@@ -97,7 +97,7 @@ button_frame.pack(fill=tk.X, pady=5)
 
 def start_iso_creation():
     # Run the ISO creation process in a separate thread to avoid freezing the GUI
-    threading.Thread(target=create_iso, args=(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var, log_text, app, stop_button)).start()
+    threading.Thread(target=create_iso, args=(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var, log_text, app, stop_button, progress_bar)).start()
 
 create_iso_button = tk.Button(button_frame, text="Create ISO", command=start_iso_creation)
 create_iso_button.pack(side=tk.LEFT, padx=(0, 5))
@@ -108,6 +108,10 @@ stop_button.pack(side=tk.LEFT)
 
 log_frame = tk.Frame(app)
 log_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+# Add a progress bar
+progress_bar = ttk.Progressbar(log_frame, orient='horizontal', length=300, mode='determinate')
+progress_bar.pack(fill=tk.X, pady=(0, 5))
 
 # Set a monospaced font for the log output
 log_font = font.Font(family="Courier", size=10)
