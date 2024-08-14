@@ -1,4 +1,5 @@
 import subprocess
+import shutil
 
 def detect_media_type(device):
     try:

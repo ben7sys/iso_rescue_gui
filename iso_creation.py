@@ -1,23 +1,23 @@
+import sys
+import shutil
 import os
 import subprocess
 import threading
 from tkinter import messagebox
 import signal
 import tkinter as tk
-
-from config import (
-    process, stop_event, DDRESCUE_DEFAULT_OPTIONS, DD_BS_SIZE,
-    DDRESCUE_COMMAND_TEMPLATE, DD_COMMAND_TEMPLATE,
-    NO_DVD_DEVICE, DDRESCUE_NOT_INSTALLED, ISO_CREATION_SUCCESS, EJECT_PROMPT
-)
+from config import process, stop_event, DDRESCUE_DEFAULT_OPTIONS, DD_BS_SIZE, DDRESCUE_COMMAND_TEMPLATE, DD_COMMAND_TEMPLATE, NO_DVD_DEVICE, DDRESCUE_NOT_INSTALLED, ISO_CREATION_SUCCESS, EJECT_PROMPT
 from core_functions import check_tool_installed, check_writable_directory
 from gui_utils import disable_gui_elements, reset_gui_state
+from iso_utils import try_mount_iso
 from media_detection import detect_media_type, prepare_command
+
+def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, log_text, app):
+    from iso_utils import handle_mapfile
 from iso_utils import try_mount_iso, attempt_iso_recovery
 
 def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, log_text, app):
-    """Create an ISO image using the selected method and options."""
-    global process, stop_event
+    from iso_utils import handle_mapfile, try_mount_iso, attempt_iso_recovery
     stop_event = threading.Event()
 
     # Check output path
@@ -52,17 +52,20 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
         messagebox.showerror("Error", "Unsupported or unknown media type detected.")
         return
 
-    # Prepare command based on media type
+    media_type = "DVD"  # Replace with the actual media type detection logic
     command = prepare_command(media_type, dvd_device, iso_path)
     if command is None:
         return
 
     # Check for sufficient free space (assuming 8GB as max size for DVD)
-    if not check_free_space(iso_path, 8 * 1024 * 1024 * 1024):
-        messagebox.showerror("Error", "Insufficient free space in the output directory.")
-        return
+    command = f"dd if={dvd_device} of={iso_path} bs=2048 conv=noerror,sync"
+    def handle_mapfile(iso_path):
+        # implementation goes here
+        pass
 
-    handle_mapfile(iso_path)  # Handle mapfile before starting the process
+    handle_mapfile(iso_path)
+    messagebox.showerror("Error", "Insufficient free space in the output directory.")
+    return
 
     disable_gui_elements(app.winfo_children())
     log_text.delete(1.0, tk.END)  # Clear log before starting a new operation
