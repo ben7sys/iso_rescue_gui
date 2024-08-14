@@ -2,6 +2,8 @@ import os
 import subprocess
 import threading
 from tkinter import messagebox
+import signal
+import tkinter as tk
 
 from config import (
     process, stop_event, DDRESCUE_DEFAULT_OPTIONS, DD_BS_SIZE,
@@ -18,25 +20,25 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
 
     iso_path = output_path_var.get()
     if not iso_path:
-        messagebox.showerror("Fehler", "Bitte geben Sie einen Ausgabepfad für die ISO-Datei an.")
+        messagebox.showerror("Error", "Please specify an output path for the ISO file.")
         return
 
     if not check_writable_directory(iso_path):
-        messagebox.showerror("Fehler", "Das Zielverzeichnis ist nicht beschreibbar. Bitte wählen Sie ein anderes Verzeichnis.")
+        messagebox.showerror("Error", "The target directory is not writable. Please choose a different directory.")
         return
 
     if os.path.exists(iso_path):
-        if not messagebox.askyesno("Überschreiben bestätigen", f"Die Datei {iso_path} existiert bereits. Überschreiben?"):
+        if not messagebox.askyesno("Confirm Overwrite", f"The file {iso_path} already exists. Overwrite?"):
             return
 
     dvd_device = dvd_device_var.get().split()[0]  # Extract device name
     if dvd_device == "No DVD device found":
-        messagebox.showerror("Fehler", NO_DVD_DEVICE)
+        messagebox.showerror("Error", NO_DVD_DEVICE)
         return
 
     method = method_var.get()
     if method == "ddrescue" and not check_tool_installed("ddrescue"):
-        messagebox.showerror("Fehler", DDRESCUE_NOT_INSTALLED)
+        messagebox.showerror("Error", DDRESCUE_NOT_INSTALLED)
         return
 
     # Build the command based on user selections
@@ -67,7 +69,7 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
 
     disable_gui_elements(app.winfo_children())
     log_text.delete(1.0, tk.END)  # Clear log before starting a new operation
-    log_text.insert(tk.END, f"Ausführender Befehl: {command}\n")
+    log_text.insert(tk.END, f"Executing command: {command}\n")
 
     threading.Thread(target=run_command, args=(command, log_text, app, iso_path, dvd_device)).start()
 
@@ -86,28 +88,28 @@ def run_command(command, log_text, app, iso_path, dvd_device):
 
         if stop_event.is_set():
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-            log_text.insert(tk.END, "Vorgang gestoppt.\n")
+            log_text.insert(tk.END, "Operation stopped.\n")
         else:
             stderr_output = process.stderr.read().strip()
             if stderr_output:
-                log_text.insert(tk.END, f"Fehlerausgabe: {stderr_output}\n")
+                log_text.insert(tk.END, f"Error output: {stderr_output}\n")
 
             if process.returncode == 0:
                 if os.path.getsize(iso_path) > 0:
-                    messagebox.showinfo("Erfolg", ISO_CREATION_SUCCESS.format(iso_path))
-                    if messagebox.askyesno("ISO erstellt", EJECT_PROMPT):
+                    messagebox.showinfo("Success", ISO_CREATION_SUCCESS.format(iso_path))
+                    if messagebox.askyesno("ISO Created", EJECT_PROMPT):
                         subprocess.run(["eject", dvd_device])
                 else:
-                    messagebox.showerror("Fehler", "Die ISO-Datei ist 0 Bytes groß. Bitte überprüfen Sie die DVD und versuchen Sie es erneut.")
+                    messagebox.showerror("Error", "The ISO file is 0 bytes in size. Please check the DVD and try again.")
             else:
                 raise subprocess.CalledProcessError(process.returncode, command)
 
     except subprocess.CalledProcessError as e:
-        log_text.insert(tk.END, f"Befehl fehlgeschlagen mit Fehler: {e}\n")
-        messagebox.showerror("Fehler", f"Erstellung des ISO-Images fehlgeschlagen. Siehe Protokoll für Details.")
+        log_text.insert(tk.END, f"Command failed with error: {e}\n")
+        messagebox.showerror("Error", "ISO creation failed. See the log for details.")
     except Exception as e:
-        log_text.insert(tk.END, f"Unerwarteter Fehler: {e}\n")
-        messagebox.showerror("Fehler", "Ein unerwarteter Fehler ist aufgetreten. Siehe Protokoll für Details.")
+        log_text.insert(tk.END, f"Unexpected error: {e}\n")
+        messagebox.showerror("Error", "An unexpected error occurred. See the log for details.")
     finally:
         app.after(0, lambda: reset_gui_state(app.winfo_children()))
 
@@ -122,13 +124,13 @@ def attempt_iso_recovery(iso_path, log_text):
     if check_tool_installed("dvdisaster"):
         recovery_command = f"dvdisaster -r -i {iso_path} -o {iso_path.replace('.iso', '-recovered.iso')}"
     else:
-        messagebox.showwarning("dvdisaster nicht installiert", "dvdisaster ist nicht installiert. Versuche Wiederherstellung mit iso-read stattdessen.")
+        messagebox.showwarning("dvdisaster not installed", "dvdisaster is not installed. Attempting recovery with iso-read instead.")
         recovery_command = f"iso-read -i {iso_path} -o {iso_path.replace('.iso', '-recovered.iso')}"
     
     try:
-        log_text.insert(tk.END, f"Versuche ISO-Wiederherstellung mit Befehl: {recovery_command}\n")
+        log_text.insert(tk.END, f"Attempting ISO recovery with command: {recovery_command}\n")
         subprocess.run(recovery_command, shell=True, check=True)
-        messagebox.showinfo("Wiederherstellung", "ISO-Wiederherstellung abgeschlossen. Überprüfen Sie die wiederhergestellte ISO.")
+        messagebox.showinfo("Recovery", "ISO recovery completed. Check the recovered ISO.")
     except subprocess.CalledProcessError as e:
-        log_text.insert(tk.END, f"ISO-Wiederherstellung fehlgeschlagen mit Fehler: {e}\n")
-        messagebox.showerror("Fehler", "ISO-Wiederherstellung fehlgeschlagen. Siehe Protokoll für Details.")
+        log_text.insert(tk.END, f"ISO recovery failed with error: {e}\n")
+        messagebox.showerror("Error", "ISO recovery failed. See the log for details.")
