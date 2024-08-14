@@ -12,6 +12,8 @@ from config import (
 )
 from core_functions import check_tool_installed, check_writable_directory
 from gui_utils import disable_gui_elements, reset_gui_state
+from media_detection import detect_media_type, prepare_command
+from iso_utils import try_mount_iso, attempt_iso_recovery
 
 def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, log_text, app):
     """Create an ISO image using the selected method and options."""
@@ -39,39 +41,29 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
         messagebox.showerror("Error", NO_DVD_DEVICE)
         return
 
-    # Check method and tool availability
-    method = method_var.get()
-    if method == "ddrescue" and not check_tool_installed("ddrescue"):
-        messagebox.showerror("Error", DDRESCUE_NOT_INSTALLED)
+    # Check if media is present in the drive
+    if not check_media_present(dvd_device):
+        messagebox.showerror("Error", "No media detected in the drive. Please insert a disc and try again.")
         return
 
-    # Build and execute command based on method and user options
-    if method == "ddrescue":
-        ddrescue_options = DDRESCUE_DEFAULT_OPTIONS.copy()
-        if n_option_var.get():
-            ddrescue_options.append("-n")
-        if r3_option_var.get():
-            ddrescue_options.append("-r3")
-        if b_option_var.get():
-            ddrescue_options.append("-b 2048")
-        if d_option_var.get():
-            ddrescue_options.append("-d")
-        
-        mapfile = f"{iso_path}.map"
-        command = DDRESCUE_COMMAND_TEMPLATE.format(
-            options=' '.join(ddrescue_options),
-            device=dvd_device,
-            iso_path=iso_path,
-            mapfile=mapfile
-        )
-    else:  # dd method
-        command = DD_COMMAND_TEMPLATE.format(
-            device=dvd_device,
-            iso_path=iso_path,
-            bs_size=DD_BS_SIZE
-        )
+    # Detect media type
+    media_type = detect_media_type(dvd_device)
+    if media_type == "Unknown":
+        messagebox.showerror("Error", "Unsupported or unknown media type detected.")
+        return
 
-    # Disable GUI elements and log command
+    # Prepare command based on media type
+    command = prepare_command(media_type, dvd_device, iso_path)
+    if command is None:
+        return
+
+    # Check for sufficient free space (assuming 8GB as max size for DVD)
+    if not check_free_space(iso_path, 8 * 1024 * 1024 * 1024):
+        messagebox.showerror("Error", "Insufficient free space in the output directory.")
+        return
+
+    handle_mapfile(iso_path)  # Handle mapfile before starting the process
+
     disable_gui_elements(app.winfo_children())
     log_text.delete(1.0, tk.END)  # Clear log before starting a new operation
     log_text.insert(tk.END, f"Executing command: {command}\n")
@@ -79,7 +71,15 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
     # Start the command execution in a new thread
     threading.Thread(target=run_command, args=(command, log_text, app, iso_path, dvd_device)).start()
 
+def check_media_present(device):
+    try:
+        subprocess.run(['dd', 'if=' + device, 'of=/dev/null', 'count=1'], 
+                       check=True, stderr=subprocess.DEVNULL)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
+# run_command() function is called in a separate thread to avoid blocking the GUI
 def run_command(command, log_text, app, iso_path, dvd_device):
     """Run the ISO creation command in a separate thread."""
     global process
