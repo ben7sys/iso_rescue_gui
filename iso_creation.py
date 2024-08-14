@@ -22,7 +22,7 @@ def handle_mapfile(iso_path):
         except OSError as e:
             print(f"Error removing mapfile: {e}")
 
-def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, log_text, app):
+def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, log_text, app, stop_button):
     global process, stop_event
     stop_event = threading.Event()
 
@@ -75,7 +75,6 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
     # Start the command execution in a new thread
     threading.Thread(target=run_command, args=(command, log_text, app, iso_path, dvd_device, stop_button)).start()
 
-
 def check_media_present(device):
     try:
         subprocess.run(['dd', 'if=' + device, 'of=/dev/null', 'count=1'], 
@@ -125,7 +124,6 @@ def run_command(command, log_text, app, iso_path, dvd_device, stop_button):
         app.after(0, lambda: reset_gui_state(app.winfo_children()))
         stop_button.config(state=tk.DISABLED)  # Ensure the Stop button is disabled after process completion
 
-
 def check_free_space(file_path, required_space):
     """Check if there's enough free space in the directory where the file will be created."""
     directory = os.path.dirname(file_path)
@@ -142,7 +140,6 @@ def check_free_space(file_path, required_space):
     
     total, used, free = shutil.disk_usage(directory)
     return free > required_space
-
 
 def stop_process():
     """Stop the current ISO creation process."""
