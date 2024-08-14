@@ -22,7 +22,7 @@ def handle_mapfile(iso_path):
         except OSError as e:
             print(f"Error removing mapfile: {e}")
 
-def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, log_text, app, stop_button):
+def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var, log_text, app, stop_button):
     global process, stop_event
     stop_event = threading.Event()
 
@@ -54,7 +54,7 @@ def create_iso(dvd_device_var, output_path_var, method_var, n_option_var, r3_opt
         messagebox.showerror("Error", "Unsupported or unknown media type detected.")
         return
 
-    command = prepare_command(media_type, dvd_device, iso_path)
+    command = prepare_command(media_type, dvd_device, iso_path, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var)
     if command is None:
         return
 
