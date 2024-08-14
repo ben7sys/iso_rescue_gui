@@ -14,17 +14,19 @@ def disable_gui_elements(elements):
 def reset_gui_state(elements):
     """Reset the GUI state after process completion or termination."""
     for element in elements:
-        if isinstance(element, tk.Button):
-            if element['text'] == "Stop":
+        # Check if the element supports the 'state' option
+        if isinstance(element, (tk.Button, tk.Entry, tk.Text, tk.ttk.Combobox, tk.Checkbutton)):
+            if isinstance(element, tk.Button) and element['text'] == "Stop":
                 element.config(state=tk.DISABLED, bg='light gray')
             else:
                 element.config(state=tk.NORMAL)
-        elif isinstance(element, tk.Entry):
-            element.config(state=tk.NORMAL)
         elif isinstance(element, tk.ttk.Combobox):
             element.config(state='readonly')
         else:
-            element.config(state=tk.NORMAL)
+            try:
+                element.config(state=tk.NORMAL)
+            except tk.TclError:
+                pass  # Ignore elements that do not support the 'state' option
 
 def apply_preset(preset, method_var, n_option_var, r3_option_var, b_option_var, d_option_var):
     """Apply preset configurations for different DVD conditions."""
