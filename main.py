@@ -44,23 +44,18 @@ method_combobox.pack(anchor=tk.W)
 options_frame = tk.LabelFrame(frame, text="ddrescue Options")
 options_frame.pack(anchor=tk.W, fill="x", pady=5)
 
-n_option_var = tk.BooleanVar()
 n_option_checkbox = tk.Checkbutton(options_frame, text="Skip Error Correction Pass (-n)", variable=n_option_var)
 n_option_checkbox.pack(anchor=tk.W)
 
-r3_option_var = tk.BooleanVar()
 r3_option_checkbox = tk.Checkbutton(options_frame, text="Retry Faulty Sectors 3 Times (-r3)", variable=r3_option_var)
 r3_option_checkbox.pack(anchor=tk.W)
 
-b_option_var = tk.BooleanVar(value=True)
 b_option_checkbox = tk.Checkbutton(options_frame, text="Set Block Size to 2048 Bytes (-b 2048)", variable=b_option_var)
 b_option_checkbox.pack(anchor=tk.W)
 
-d_option_var = tk.BooleanVar(value=True)
 d_option_checkbox = tk.Checkbutton(options_frame, text="Use Direct Access Mode (-d)", variable=d_option_var)
 d_option_checkbox.pack(anchor=tk.W)
 
-c_option_var = tk.BooleanVar(value=False)
 c_option_checkbox = tk.Checkbutton(options_frame, text="Reading from partial copy (-C)", variable=c_option_var)
 c_option_checkbox.pack(anchor=tk.W)
 
@@ -95,7 +90,7 @@ button_frame.pack(fill=tk.X, pady=5)
 
 def start_iso_creation():
     # Run the ISO creation process in a separate thread to avoid freezing the GUI
-    threading.Thread(target=create_iso, args=(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, log_text, app, stop_button)).start()
+    threading.Thread(target=create_iso, args=(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, c_option_var, log_text, app, stop_button)).start()
 
 create_iso_button = tk.Button(button_frame, text="Create ISO", command=start_iso_creation)
 create_iso_button.pack(side=tk.LEFT, padx=(0, 5))
