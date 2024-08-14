@@ -7,10 +7,12 @@ def disable_gui_elements(elements):
     This function disables all elements in the GUI except for the Stop button, 
     which is highlighted in red to indicate its active state."""
     for element in elements:
-        if isinstance(element, tk.Button) and element['text'] == "Stop":
-            element.config(state=tk.NORMAL, bg='red')
-        else:
-            element.config(state=tk.DISABLED)
+        # Check if the widget is a type that supports the 'state' configuration option
+        if isinstance(element, (tk.Button, tk.Entry, tk.Text, ttk.Combobox)):
+            if isinstance(element, tk.Button) and element['text'] == "Stop":
+                element.config(state=tk.NORMAL, bg='red')
+            else:
+                element.config(state=tk.DISABLED)
 
 def reset_gui_state(elements):
     """Reset the GUI state after process completion or termination.
