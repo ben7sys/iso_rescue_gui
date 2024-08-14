@@ -6,8 +6,10 @@ import threading
 from config import *
 from core_functions import check_sudo, check_tool_installed
 from device_detection import detect_dvd_devices
-from gui_utils import disable_gui_elements, reset_gui_state, apply_preset
+from gui_utils import disable_gui_elements, reset_gui_state, apply_preset, update_gui_for_media_type
 from iso_creation import create_iso, stop_process
+from media_detection import detect_media_type
+from iso_utils import try_mount_iso, attempt_iso_recovery
 
 # Get the original user who ran sudo
 original_user = check_sudo()
@@ -72,7 +74,6 @@ irrecoverable_button = tk.Button(presets_frame, text="Irrecoverable DVD", comman
 irrecoverable_button.pack(side=tk.LEFT, padx=5)
 
 # Set default output path to the original user's home directory
-# This path will be used as the default save location for the created ISO image
 default_output_path = os.path.expanduser(f"~{original_user}/ddrescue.iso")
 output_path_var = tk.StringVar(value=default_output_path)
 output_path_label = tk.Label(frame, text="Output Path for ISO File:")
@@ -107,9 +108,11 @@ log_text = scrolledtext.ScrolledText(log_frame, wrap=tk.WORD, height=10, font=lo
 log_text.pack(fill=tk.BOTH, expand=True)
 
 # Check if dvdisaster tool is installed and disable certain options if it's not available
-# dvdisaster provides additional recovery options for badly damaged discs
 if not check_tool_installed("dvdisaster"):
     d_option_checkbox.config(state=tk.DISABLED)
     messagebox.showwarning("dvdisaster not installed", "dvdisaster is not installed. Some recovery options are disabled.")
+
+# Bind the media type update function
+dvd_device_combobox.bind("<<ComboboxSelected>>", lambda _: update_gui_for_media_type(dvd_device_var, method_var, options_frame.winfo_children()))
 
 app.mainloop()
