@@ -91,11 +91,12 @@ button_frame.pack(fill=tk.X, pady=5)
 
 def start_iso_creation():
     # Run the ISO creation process in a separate thread to avoid freezing the GUI
-    threading.Thread(target=create_iso, args=(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, log_text, app)).start()
+    threading.Thread(target=create_iso, args=(dvd_device_var, output_path_var, method_var, n_option_var, r3_option_var, b_option_var, d_option_var, log_text, app, stop_button)).start()
 
 create_iso_button = tk.Button(button_frame, text="Create ISO", command=start_iso_creation)
 create_iso_button.pack(side=tk.LEFT, padx=(0, 5))
 
+# Define the Stop button
 stop_button = tk.Button(button_frame, text="Stop", command=stop_process, state=tk.DISABLED)
 stop_button.pack(side=tk.LEFT)
 
